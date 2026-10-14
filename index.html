@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cal Poly buildings above 82°F during the October heat wave</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ffffff;--ink:#1d2433;--muted:#5b6475;--rule:#d9dde3;--panel:#f5f6f8;
+ --h1:#fdd49e;--h2:#fc8d59;--h3:#e34a33;--h4:#b30000;color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181e;--ink:#e8eaee;--muted:#a3abb9;--rule:#2f3540;--panel:#1d2129;color-scheme:dark;}}
+:root[data-theme="dark"]{--bg:#15181e;--ink:#e8eaee;--muted:#a3abb9;--rule:#2f3540;--panel:#1d2129;color-scheme:dark;}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Libre Franklin",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5}
+header{max-width:1100px;margin:0 auto;padding:28px 20px 12px}
+h1{font-weight:800;font-size:clamp(1.6rem,3.5vw,2.4rem);line-height:1.1;margin:0 0 10px;max-width:22ch;letter-spacing:-0.01em}
+.dek{color:var(--muted);max-width:62ch;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:12px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px}
+#map{height:620px;border:1px solid var(--rule);border-radius:4px}
+aside{display:flex;flex-direction:column;gap:16px}
+.legend{background:var(--panel);padding:14px;border-radius:4px;font-size:.85rem}
+.legend h2,.list h2{font-size:.95rem;margin:0 0 8px;font-weight:600}
+.ramp{display:flex;gap:2px;margin-bottom:4px}.ramp span{flex:1;height:12px}
+.ramp-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem}
+.sizes{display:flex;align-items:flex-end;gap:14px;margin-top:6px;color:var(--muted);font-size:.78rem}
+.sizes div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.sizes i{display:block;border-radius:50%;border:1.5px solid var(--muted)}
+.list ol{list-style:none;margin:0;padding:0;max-height:360px;overflow:auto}
+.list li{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--rule);cursor:pointer;font-size:.88rem}
+.list li:hover,.list li:focus{background:var(--panel);outline:none}
+.list li:focus-visible{outline:2px solid var(--h3)}
+.dot{width:12px;height:12px;border-radius:50%}
+.t{font-weight:600;font-variant-numeric:tabular-nums}
+.flag{color:var(--h3);font-size:.75rem;display:block}
+footer{max-width:1100px;margin:0 auto;padding:0 20px 28px;color:var(--muted);font-size:.8rem}
+.leaflet-popup-content{font-family:"Libre Franklin",sans-serif;font-size:.85rem;line-height:1.4}
+.leaflet-popup-content b{font-size:.95rem}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}#map{height:460px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Where Cal Poly buildings topped 82°F</h1>
+<p class="dek">Indoor sensor readings from Oct. 6–9, 2026. Only sensors that recorded at least one reading above 82°F are shown. Color shows the highest temperature recorded; size shows how many readings were above 82°F.</p>
+</header>
+<div class="wrap">
+<div id="map" role="region" aria-label="Map of campus sensors"></div>
+<aside>
+<div class="legend">
+<h2>Highest reading</h2>
+<div class="ramp"><span style="background:var(--h1)"></span><span style="background:var(--h2)"></span><span style="background:var(--h3)"></span><span style="background:var(--h4)"></span></div>
+<div class="ramp-labels"><span>82°</span><span>84°</span><span>86°</span><span>88°+</span></div>
+<h2 style="margin-top:12px">Readings above 82°F</h2>
+<div class="sizes" id="sizes"></div>
+</div>
+<div class="list"><h2>Ranked by highest reading</h2><ol id="list"></ol></div>
+</aside>
+</div>
+<footer>Readings were taken about every 30 minutes. Dashed outline: data needs verification. Map data © OpenStreetMap contributors.</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const DATA = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65731, 35.30851]}, "properties": {"sensor_id": 5, "name": "Gypsum 4th floor (PCV)", "peak_temp_f": 90.86, "peak_time": "2026-10-06T15:30", "humidity_at_peak_pct": 48.0, "readings_above_82": 41, "total_readings": 150, "first_above_82": "2026-10-06T15:00", "last_above_82": "2026-10-08T21:30", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65863, 35.30752]}, "properties": {"sensor_id": 9, "name": "Inyo 5th floor (PCV)", "peak_temp_f": 88.88, "peak_time": "2026-10-06T15:30", "humidity_at_peak_pct": 41.0, "readings_above_82": 27, "total_readings": 27, "first_above_82": "2026-10-06T11:00", "last_above_82": "2026-10-07T00:30", "needs_verification": false, "note": "This sensor stopped reporting at 12:30 a.m. Oct. 7; all 27 of its readings were above 82."}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65717, 35.30183]}, "properties": {"sensor_id": 1, "name": "Trinity 2nd floor", "peak_temp_f": 86.9, "peak_time": "2026-10-07T18:30", "humidity_at_peak_pct": 42.3, "readings_above_82": 38, "total_readings": 152, "first_above_82": "2026-10-06T19:30", "last_above_82": "2026-10-09T16:00", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65986, 35.30204]}, "properties": {"sensor_id": 4, "name": "Science North", "peak_temp_f": 86.9, "peak_time": "2026-10-06T12:30", "humidity_at_peak_pct": 54.6, "readings_above_82": 3, "total_readings": 157, "first_above_82": "2026-10-06T12:30", "last_above_82": "2026-10-06T15:30", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66349, 35.3011]}, "properties": {"sensor_id": 14, "name": "Dexter Art / Design", "peak_temp_f": 86.9, "peak_time": "2026-10-06T19:10", "humidity_at_peak_pct": 43.5, "readings_above_82": 17, "total_readings": 155, "first_above_82": "2026-10-06T14:40", "last_above_82": "2026-10-07T20:40", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66282, 35.29927]}, "properties": {"sensor_id": 18, "name": "Construction Innovation Center (186-C103)", "peak_temp_f": 84.92, "peak_time": "2026-10-06T19:36", "humidity_at_peak_pct": 49.5, "readings_above_82": 1, "total_readings": 143, "first_above_82": "2026-10-06T19:36", "last_above_82": "2026-10-06T19:36", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66493, 35.29997]}, "properties": {"sensor_id": 10, "name": "OCOB", "peak_temp_f": 84.74, "peak_time": "2026-10-06T14:03", "humidity_at_peak_pct": 56.0, "readings_above_82": 2, "total_readings": 149, "first_above_82": "2026-10-06T14:03", "last_above_82": "2026-10-07T19:33", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66456, 35.30022]}, "properties": {"sensor_id": 6, "name": "Education Bldg 02", "peak_temp_f": 84.56, "peak_time": "2026-10-06T19:30", "humidity_at_peak_pct": 52.8, "readings_above_82": 26, "total_readings": 157, "first_above_82": "2026-10-06T12:00", "last_above_82": "2026-10-08T20:00", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65346, 35.29791]}, "properties": {"sensor_id": 13, "name": "Yosemite", "peak_temp_f": 84.56, "peak_time": "2026-10-06T19:30", "humidity_at_peak_pct": 52.8, "readings_above_82": 26, "total_readings": 157, "first_above_82": "2026-10-06T12:00", "last_above_82": "2026-10-08T20:00", "needs_verification": true, "note": "Every Yosemite reading is identical (temperature and humidity, same timestamps) to the Education Bldg 02 sensor. Likely a copy/paste error; verify before publishing."}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66446, 35.29776]}, "properties": {"sensor_id": 20, "name": "Jespersen Hall Rm. 112", "peak_temp_f": 84.56, "peak_time": "2026-10-06T13:30", "humidity_at_peak_pct": 54.6, "readings_above_82": 1, "total_readings": 157, "first_above_82": "2026-10-06T13:30", "last_above_82": "2026-10-06T13:30", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65998, 35.30049]}, "properties": {"sensor_id": 7, "name": "Science 52 west wing", "peak_temp_f": 84.02, "peak_time": "2026-10-07T16:21", "humidity_at_peak_pct": 48.1, "readings_above_82": 19, "total_readings": 156, "first_above_82": "2026-10-06T16:21", "last_above_82": "2026-10-07T19:51", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.65678, 35.3009]}, "properties": {"sensor_id": 15, "name": "Muir", "peak_temp_f": 83.66, "peak_time": "2026-10-08T20:28", "humidity_at_peak_pct": 63.1, "readings_above_82": 42, "total_readings": 156, "first_above_82": "2026-10-07T00:58", "last_above_82": "2026-10-08T23:58", "needs_verification": false, "note": ""}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66175, 35.2993]}, "properties": {"sensor_id": 19, "name": "26-104 (air conditioned)", "peak_temp_f": 82.94, "peak_time": "2026-10-08T17:41", "humidity_at_peak_pct": 54.6, "readings_above_82": 3, "total_readings": 143, "first_above_82": "2026-10-06T19:11", "last_above_82": "2026-10-08T17:41", "needs_verification": false, "note": "Shares coordinates with the Graphic Arts sensor."}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-120.66175, 35.2993]}, "properties": {"sensor_id": 16, "name": "Graphic Arts", "peak_temp_f": 82.04, "peak_time": "2026-10-07T19:30", "humidity_at_peak_pct": 49.0, "readings_above_82": 1, "total_readings": 157, "first_above_82": "2026-10-07T19:30", "last_above_82": "2026-10-07T19:30", "needs_verification": false, "note": ""}}]};
+const css=getComputedStyle(document.documentElement);
+const C=v=>css.getPropertyValue(v).trim();
+const color=t=>t>=88?C('--h4'):t>=86?C('--h3'):t>=84?C('--h2'):C('--h1');
+const radius=n=>6+Math.sqrt(n)*2.4;
+const fmt=s=>{const d=new Date(s);return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})};
+const map=L.map('map',{scrollWheelZoom:false}).setView([35.3025,-120.6595],16);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+const markers={};
+const feats=[...DATA.features].sort((a,b)=>a.properties.readings_above_82<b.properties.readings_above_82?1:-1);
+feats.forEach(f=>{
+ const p=f.properties;let [lon,lat]=f.geometry.coordinates;
+ if(p.sensor_id===19){lon+=0.00012;}
+ const m=L.circleMarker([lat,lon],{radius:radius(p.readings_above_82),fillColor:color(p.peak_temp_f),fillOpacity:.88,
+   color:p.needs_verification?C('--ink'):'#ffffff',weight:p.needs_verification?2:1.5,dashArray:p.needs_verification?'4 3':null}).addTo(map);
+ m.bindPopup(`<b>${p.name}</b><br>Highest: <b>${p.peak_temp_f.toFixed(1)}°F</b> at ${fmt(p.peak_time)}<br>${p.readings_above_82} of ${p.total_readings} readings above 82°F<br>Above 82°F from ${fmt(p.first_above_82)} to ${fmt(p.last_above_82)}${p.note?`<br><i>${p.note}</i>`:''}`);
+ markers[p.sensor_id]=m;
+});
+const list=document.getElementById('list');
+DATA.features.forEach(f=>{const p=f.properties;const li=document.createElement('li');li.tabIndex=0;
+ li.innerHTML=`<span class="dot" style="background:${color(p.peak_temp_f)}"></span><span>${p.name}${p.needs_verification?'<span class="flag">Needs verification</span>':''}</span><span class="t">${p.peak_temp_f.toFixed(1)}°</span>`;
+ const go=()=>{const m=markers[p.sensor_id];map.setView(m.getLatLng(),17);m.openPopup();};
+ li.onclick=go;li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};list.appendChild(li);});
+const sz=document.getElementById('sizes');[1,10,40].forEach(n=>{const r=radius(n);sz.insertAdjacentHTML('beforeend',`<div><i style="width:${2*r}px;height:${2*r}px"></i>${n}</div>`)});
+const b=L.latLngBounds(DATA.features.map(f=>[f.geometry.coordinates[1],f.geometry.coordinates[0]]));map.fitBounds(b.pad(0.15));
+</script>
+</body>
+</html>
